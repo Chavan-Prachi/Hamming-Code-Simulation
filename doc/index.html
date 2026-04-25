@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hamming Code Simulator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <script src="script.js"></script>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div>
+                <h1>Hamming Code Simulator</h1>
+                <p>Error Detection & Correction Visualization</p>
+            </div>
+            <div class="team-info">
+                <strong>Team: Bitwise Girls</strong>
+                Prachi Chavan • Zarin Fatima Ansari • Pooja Gunjilkar
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-steps">
+                <div class="progress-line">
+                    <div class="progress-line-fill" id="progressFill"></div>
+                </div>
+                <div class="step active" data-step="1">
+                    <div class="step-icon">
+                        <span>01</span>
+                        <span style="font-size: 10px; display: block; line-height: 1;">10</span>
+                    </div>
+                    <div class="step-label">Input</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-icon">🛡️</div>
+                    <div class="step-label">Encode</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-icon">📡</div>
+                    <div class="step-label">Transmit</div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-icon">⚠️</div>
+                    <div class="step-label">Error</div>
+                </div>
+                <div class="step" data-step="5">
+                    <div class="step-icon">✓</div>
+                    <div class="step-label">Decode</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="content-panel">
+                <!-- Step 1: Input -->
+                <div class="step-content active" id="step1">
+                    <h2 class="step-title">Step 1: Input Binary Data</h2>
+                    <p class="step-description">Enter or generate binary data to encode</p>
+
+                    <div class="input-size-selector">
+                        <button class="size-btn active" onclick="selectInputSize(4)">
+                            <h3>4 bits</h3>
+                            <p>Hamming(7,4)</p>
+                        </button>
+                        <button class="size-btn" onclick="selectInputSize(8)">
+                            <h3>8 bits</h3>
+                            <p>Hamming(12,8)</p>
+                        </button>
+                    </div>
+
+                    <div class="binary-input-container">
+                        <label class="input-label">Binary Input (<span id="inputCount">0</span>/4 bits)</label>
+                        <input type="text" class="binary-input" id="binaryInput" placeholder="Enter 4 binary digits(0 or 1)" maxlength="4" oninput="validateInput(this)">
+                    </div>
+
+                    <div class="current-input-display" id="currentInputDisplay" style="display: none;">
+                        <div class="current-input-label">Current Input</div>
+                        <div class="bit-display" id="bitDisplay"></div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" onclick="generateRandom()">
+                            <span>✨</span> Generate Random
+                        </button>
+                        <button class="btn btn-primary" id="nextEncodeBtn" onclick="goToStep(2)" disabled>
+                            Next: Encode →
+                        </button>
+                    </div>
+
+                    <div class="info-box">
+                        <h4>📘 What is Hamming Code?</h4>
+                        <p>Hamming Code is a linear error-correcting code invented by Richard W. Hamming at Bell Labs in 1950. It was designed to automatically detect and correct single-bit errors that occur during data transmission or storage — a critical need in the era of punch-card computing where errors were common.</p>
+                        <p>For every k data bits, Hamming adds r parity bits at positions that are powers of 2 (positions 1, 2, 4, 8...). Each parity bit covers a specific subset of bit positions determined by the binary representation of those positions, and the total codeword length becomes n = k + r.<br>The condition is: 2^r ≥ n + 1.</p>
+                        <p>Example sizes in this simulator:</p>
+                        <ul>
+                            <li>4 data bits → 3 parity bits → 7-bit codeword (Hamming(7,4))</li>
+                            <li>8 data bits → 4 parity bits → 12-bit codeword (Hamming(12,8))</li>
+                        </ul>
+                        <p>The parity bits are calculated so the XOR of all bits they cover equals 0 (even parity). At the receiver, recomputing parity checks produces a syndrome. If the syndrome is zero, no error occurred; otherwise, the syndrome value points to the exact erroneous bit position, which can be flipped to correct the error.</p>
+                    </div>
+                </div>
+
+                <!-- Step 2: Encode -->
+                <div class="step-content" id="step2">
+                    <h2 class="step-title">Step 2: Encode with Hamming Code</h2>
+                    <p class="step-description">Adding parity bits for error detection
+                        <br> Parity bits sit at positions that are powers of 2.<br>
+                    Hamming(7,4) encodes 4 data bits into 7-bit codeword with 3 parity bits.<br>
+                     Hamming(12,8) encodes 8 data bits into 12 bits with 4 parity bits.
+                    <br> Parity bits sit at positions that are powers of 2.</p>
+
+                    <div class="original-data-box">
+                        <div class="section-label">Original Data (4 bits)</div>
+                        <div class="bit-display" id="originalDataDisplay"></div>
+                    </div>
+
+                    <div class="parity-calculations">
+                        <div class="section-label">Parity Bit Calculations (XOR Operations)</div>
+                        
+                        <div class="calculation-box">
+                            <div class="calculation-header">
+                                <div class="calculation-title">Position P1</div>
+                                <div class="calculation-result" id="p1Result">-</div>
+                            </div>
+                            <div class="calculation-formula" id="p1Formula">XOR: P ⊕ 1 ⊕ 1 ⊕ 1</div>
+                        </div>
+
+                        <div class="calculation-box">
+                            <div class="calculation-header">
+                                <div class="calculation-title">Position P2</div>
+                                <div class="calculation-result" id="p2Result">-</div>
+                            </div>
+                            <div class="calculation-formula" id="p2Formula">XOR: P ⊕ 1  0 ⊕ 1</div>
+                        </div>
+
+                        <div class="calculation-box">
+                            <div class="calculation-header">
+                                <div class="calculation-title">Position P4</div>
+                                <div class="calculation-result" id="p4Result">-</div>
+                            </div>
+                            <div class="calculation-formula" id="p4Formula">XOR: P ⊕ 1 ⊕ 0 ⊕ 1</div>
+                        </div>
+                    </div>
+
+                    <div class="encoded-code-box">
+                        <div class="encoded-header">
+                            <div class="encoded-title">Encoded Hamming Code (7 bits) [Hamming(7,4)]</div>
+                        </div>
+                        <div class="encoded-bits" id="encodedBits"></div>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="legend-box parity"></div>
+                                <span>Parity Bit</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-box data"></div>
+                                <span>Data Bit</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="success-box">
+                        <div class="success-icon">✓</div>
+                        <div>
+                            <div class="success-text">Encoding Complete!</div>
+                            <div class="success-description">Data has been encoded with parity bits at positions: 1, 2, 4. The encoded message is now ready for transmission.</div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="goToStep(3)">
+                        Next: Transmit →
+                    </button>
+                </div>
+
+                <!-- Step 3: Transmit -->
+                <div class="step-content" id="step3">
+                    <h2 class="step-title">Step 3: Transmit Data</h2>
+                    <p class="step-description">Sending encoded data through communication channel</p>
+
+                    <div class="transmission-visual">
+                        <div class="transmission-container">
+                            <div class="transmission-endpoint">
+                                <div class="endpoint-icon">📡</div>
+                                <div class="endpoint-label">Sender</div>
+                            </div>
+                            <div class="transmission-line"></div>
+                            <div class="transmission-endpoint">
+                                <div class="endpoint-icon">📡</div>
+                                <div class="endpoint-label">Receiver</div>
+                            </div>
+                        </div>
+                        <div class="transmission-status">
+                            <span>✓</span> Transmission Complete!
+                        </div>
+                    </div>
+
+                    <div class="data-in-transit">
+                        <div class="section-label">Data in Transit (7 bits)</div>
+                        <div class="data-bits-row" id="transitBits"></div>
+                    </div>
+
+                    <div class="channel-info">
+                        <div class="channel-title">📡 Communication Channel</div>
+                        <div class="channel-description">In real systems, data travels through physical channels (copper wires, fiber optics, wireless) where noise and interference can introduce errors. Our simulation represents this transmission process.</div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="goToStep(4)">
+                        Next: Error Injection →
+                    </button>
+                </div>
+
+                <!-- Step 4: Error Injection -->
+                <div class="step-content" id="step4">
+                    <h2 class="step-title">Step 4: Error Injection</h2>
+                    <p class="step-description">Simulate transmission errors by flipping bits</p>
+
+                    <div class="received-data-box">
+                        <div class="section-label">Received Data (7 bits)</div>
+                        <div class="data-bits-row" id="receivedBits"></div>
+                    </div>
+
+                    <div class="error-method-selector">
+                        <div class="error-method-title">⚠️ Select Error Injection Method</div>
+                        <button class="error-method-btn random active" onclick="selectErrorMethod('random')">
+                            <span>⚡</span> Random Error
+                        </button>
+                        <button class="error-method-btn clean" onclick="selectErrorMethod('clean')">
+                            <span>✓</span> No Error (Clean Transmission)
+                        </button>
+                        
+                        <div class="manual-flip-hint">Or click any bit below to flip it manually</div>
+                        <div class="manual-flip-bits" id="manualFlipBits"></div>
+                    </div>
+
+                    <div class="error-info-box">
+                        <div class="error-info-title">⚡ What Causes Errors?</div>
+                        <div class="error-info-text">Transmission errors occur due to electromagnetic interference, noise, signal attenuation, or hardware malfunctions. Hamming codes help detect and correct single-bit errors automatically.</div>
+                    </div>
+
+                    <button class="btn btn-primary" id="nextDecodeBtn" onclick="goToStep(5)">
+                        Next: Decode & Correct →
+                    </button>
+                </div>
+
+                <!-- Step 5: Decode -->
+                <div class="step-content" id="step5">
+                    <h2 class="step-title">Step 5: Decode & Error Correction</h2>
+                    <p class="step-description">Detecting and correcting errors using Hamming code</p>
+
+                    <div class="original-data-box">
+                        <div class="section-label">Received Data (7 bits)</div>
+                        <div class="data-bits-row" id="decodeReceivedBits"></div>
+                    </div>
+
+                    <div class="parity-calculations">
+                        <div class="section-label">Syndrome Calculation (Error Detection)</div>
+                        
+                        <div class="calculation-box">
+                            <div class="calculation-header">
+                                <div class="calculation-title">Check P1 (positions 1,3,5,7)</div>
+                                <div class="calculation-result" id="checkP1">-</div>
+                            </div>
+                            <div class="calculation-formula" id="checkP1Formula">Parity check calculation</div>
+                        </div>
+
+                        <div class="calculation-box">
+                            <div class="calculation-header">
+                                <div class="calculation-title">Check P2 (positions 2,3,6,7)</div>
+                                <div class="calculation-result" id="checkP2">-</div>
+                            </div>
+                            <div class="calculation-formula" id="checkP2Formula">Parity check calculation</div>
+                        </div>
+
+                        <div class="calculation-box">
+                            <div class="calculation-header">
+                                <div class="calculation-title">Check P4 (positions 4,5,6,7)</div>
+                                <div class="calculation-result" id="checkP4">-</div>
+                            </div>
+                            <div class="calculation-formula" id="checkP4Formula">Parity check calculation</div>
+                        </div>
+                    </div>
+
+                    <div class="encoded-code-box" style="background: #eff6ff; border-color: #3b82f6;">
+                        <div class="encoded-header">
+                            <div class="encoded-title" style="color: #1e40af;">Syndrome (Error Position)</div>
+                        </div>
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="font-size: 32px; font-weight: 700; color: #1e40af; margin-bottom: 10px;" id="syndromeValue">0</div>
+                            <div style="color: #64748b; font-size: 14px;" id="syndromeMessage">No error detected</div>
+                        </div>
+                    </div>
+
+                    <div class="success-box" id="correctionResult">
+                        <div class="success-icon">✓</div>
+                        <div>
+                            <div class="success-text">Decoding Complete!</div>
+                            <div class="success-description" id="decodeDescription">Original data successfully recovered.</div>
+                        </div>
+                    </div>
+
+                <!-- Corrected Codeword -->
+<div class="original-data-box" style="background: #eef2ff;">
+    <div class="section-label">Corrected Codeword (7 bits)</div>
+    <div class="data-bits-row" id="correctedCodewordDisplay"></div>
+</div>
+
+<!-- Corrected Data -->
+<div class="original-data-box" style="background: #f0fdf4;">
+    <div class="section-label">Corrected Data (4 bits)</div>
+    <div class="bit-display" id="correctedDataDisplay"></div>
+</div>
+                    <button class="btn btn-secondary" onclick="resetSimulation()" style="width: 100%;">
+                        🔄 Start New Simulation
+                    </button>
+                </div>
+            </div>
+
+            <!-- Simulation Log -->
+            <div class="log-panel">
+                <div class="log-header">
+                    <span>›_</span> Simulation Log
+                </div>
+                <div class="log-list" id="logList">
+                    <div class="log-empty">
+                        <div class="log-empty-icon">📋</div>
+                        <div>No logs yet</div>
+                        <div style="font-size: 12px; margin-top: 5px;">Events will appear here as you progress</div>
+                    </div>
+                </div>
+                <div class="log-count" id="logCount">0 event(s) logged</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
